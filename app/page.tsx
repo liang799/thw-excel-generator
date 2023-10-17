@@ -45,31 +45,41 @@ export default function FileUpload() {
     const $ = cheerio.load(fileContents);
 
     const $duty_clerk_messages = $('div.message.default.clearfix div.text:contains("Parade State Summary")').parents('div.body');
-    $duty_clerk_messages.each((index, element) => {
-      const timeElement = $(element).find('div.pull_right.date.details[title]').first();
+
+
+    const elementsArray = $duty_clerk_messages.get(); // Convert to an array
+
+    /* Need to iterate in reverse order */
+    let headingColumnIndex = 2;
+    for (let i = elementsArray.length - 1; i >= 0; i--) {
+      const element = $(elementsArray[i]);
+      const timeElement = element.find('div.pull_right.date.details[title]').first();
       const datetimeRawStr = timeElement.attr('title');
       if (!datetimeRawStr) {
-        const rawParadeText = $(element).find('div.text').text();
-        console.log(rawParadeText)
-        return;
+        const rawParadeText = element.find('div.text').text();
+        console.log(rawParadeText);
+        continue;
       }
 
       const paradeDate = parse(datetimeRawStr, 'dd.MM.yyyy HH:mm:ss \'UTC\'XXX', new Date());
 
-      const rawParadeText = $(element).find('div.text').html();
-      if (!rawParadeText) return;
+      const rawParadeText = element.find('div.text').html();
+      if (!rawParadeText) continue;
+
       const cleanedParadeText = rawParadeText
         .replace(/<br>/g, '\n') // Replace <br> with \n
         .replace(/<[^>]*>/g, '') // Remove all HTML tags
         .replace(/&nbsp;/g, ' '); // Replace &nbsp; with a space
+
       const parade = new Parade(cleanedParadeText);
 
-      const headingColumnIndex = index + 2;
       worksheet.getCell(1, headingColumnIndex).value = formatWithPeriod(paradeDate);
 
       const attendances = parade.getAttendances();
       console.log(attendances);
-    });
+
+      headingColumnIndex++;
+    }
 
     const excelBlob = await workbook.xlsx.writeBuffer();
     const blob = new Blob([excelBlob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
