@@ -5,6 +5,8 @@ import React, { useState, ChangeEvent } from 'react';
 import * as cheerio from 'cheerio';
 import { Workbook, Worksheet } from 'exceljs';
 import { saveAs } from 'file-saver';
+import { Parade } from '@/utils/Parade';
+import { format, parse } from 'date-fns';
 
 export default function FileUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null | undefined>(null);
@@ -42,29 +44,33 @@ export default function FileUpload() {
     const fileContents = await selectedFile.text();
     const $ = cheerio.load(fileContents);
 
-    $('div.message.default.clearfix div.text:contains("Parade State Summary")').each((index, element) => {
-      const textWithBr = $(element).html(); // Get the HTML content with <br> tags
-      if (!textWithBr) return;
-      const paradeData = textWithBr.replace(/<br>/g, '\n');
-      const lines = paradeData.split('\n');
+    const $duty_clerk_messages = $('div.message.default.clearfix div.text:contains("Parade State Summary")').parents('div.body');
+    $duty_clerk_messages.each((index, element) => {
+      const timeElement = $(element).find('div.pull_right.date.details[title]').first();
+      const datetimeRawStr = timeElement.attr('title');
+      if (!datetimeRawStr) {
+        const rawParadeText = $(element).find('div.text').text();
+        console.log(rawParadeText)
+        return;
+      }
 
-      console.log(`Parade Data ${index + 1}:`);
-      console.log(lines[3]);
-      console.log(paradeData);
+      const paradeDate = parse(datetimeRawStr, 'dd.MM.yyyy HH:mm:ss \'UTC\'XXX', new Date());
+
+      const rawParadeText = $(element).find('div.text').html();
+      if (!rawParadeText) return;
+      const cleanedParadeText = rawParadeText
+        .replace(/<br>/g, '\n') // Replace <br> with \n
+        .replace(/<[^>]*>/g, '') // Remove all HTML tags
+        .replace(/&nbsp;/g, ' '); // Replace &nbsp; with a space
+      const parade = new Parade(cleanedParadeText);
 
       const headingColumnIndex = index + 2;
-      worksheet.getCell(1, headingColumnIndex).value = lines[3]; // get current date and set as header
+      worksheet.getCell(1, headingColumnIndex).value = formatWithPeriod(paradeDate);
 
-      const sections = paradeData.split('\n\n');
-      console.log(sections);
-      const usersArray = sections.reduce((acc: any[], section: string) => {
-        const users = parseSection(section);
-        return acc.concat(users);
-      }, []);
-
-      console.log(usersArray)
-
+      const attendances = parade.getAttendances();
+      console.log(attendances);
     });
+
     const excelBlob = await workbook.xlsx.writeBuffer();
     const blob = new Blob([excelBlob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     saveAs(blob, 'example.xlsx');
@@ -81,22 +87,11 @@ export default function FileUpload() {
   );
 }
 
-
-function parseSection(section: string): any[] {
-  const lines = section.split('\n');
-  const users = [];
-
-  if (!lines[0].includes("/")) return users;
-
-  for (let i = 1; i < lines.length; i++) {
-    const parts = lines[i].split('-');
-
-    if (parts.length < 2) { continue; }
-
-    const name = parts[0].trim();
-    const attendanceStatus = parts[1].trim();
-    users.push({ name, attendanceStatus });
-  }
-
-  return users;
-};
+function formatWithPeriod(date: Date) {
+  console.log(date);
+  const hour = date.getHours();
+  console.log(hour);
+  const period = hour >= 12 ? 'PM' : 'AM';
+  console.log(period);
+  return `${format(date, 'dd MMM')} (${period})`;
+}
