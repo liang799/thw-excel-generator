@@ -56,15 +56,15 @@ export default function FileUpload() {
       const timeElement = element.find('div.pull_right.date.details[title]').first();
       const datetimeRawStr = timeElement.attr('title');
       if (!datetimeRawStr) {
-        const rawParadeText = element.find('div.text').text();
-        console.log(rawParadeText);
         continue;
       }
 
       const paradeDate = parse(datetimeRawStr, 'dd.MM.yyyy HH:mm:ss \'UTC\'XXX', new Date());
 
       const rawParadeText = element.find('div.text').html();
-      if (!rawParadeText) continue;
+      if (!rawParadeText) {
+        continue;
+      }
 
       const cleanedParadeText = rawParadeText
         .replace(/<br>/g, '\n') // Replace <br> with \n
@@ -83,7 +83,7 @@ export default function FileUpload() {
 
     const excelBlob = await workbook.xlsx.writeBuffer();
     const blob = new Blob([excelBlob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(blob, 'example.xlsx');
+    // saveAs(blob, 'example.xlsx');
     setIsLoading(false);
   };
 
