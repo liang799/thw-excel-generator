@@ -6,7 +6,6 @@ import * as cheerio from 'cheerio';
 import { saveAs } from 'file-saver';
 import { Parade } from '@/utils/Parade';
 import { format, parse } from 'date-fns';
-import 'core-js/features/number/is-nan';
 import { Workbook } from "exceljs";
 
 export default function FileUpload() {
@@ -51,23 +50,23 @@ export default function FileUpload() {
     const $duty_clerk_messages = $('div.message.default.clearfix div.text:contains("Parade State Summary")').parents('div.body');
 
 
-    const elementsArray = $duty_clerk_messages.get(); // Convert to an array
+    const reversedHtmlParades = $duty_clerk_messages.get();
+    const htmlParades = reversedHtmlParades.reverse();
 
-    /* Need to iterate in reverse order */
-    let headingColumnIndex = 2;
-    for (let i = elementsArray.length - 1; i >= 0; i--) {
-      const element = $(elementsArray[i]);
+    htmlParades.forEach((htmlParade, index) => {
+      const element = $(htmlParade);
       const timeElement = element.find('div.pull_right.date.details[title]').first();
+      
       const datetimeRawStr = timeElement.attr('title');
       if (!datetimeRawStr) {
-        continue;
+        return;
       }
 
       const paradeDate = parse(datetimeRawStr, 'dd.MM.yyyy HH:mm:ss \'UTC\'XXX', new Date());
 
       const rawParadeText = element.find('div.text').html();
       if (!rawParadeText) {
-        continue;
+        return;
       }
 
       const cleanedParadeText = rawParadeText
@@ -77,6 +76,7 @@ export default function FileUpload() {
 
       const parade = new Parade(cleanedParadeText);
 
+      const headingColumnIndex = index + 2;
       worksheet.getCell(1, headingColumnIndex).value = formatWithPeriod(paradeDate);
       worksheet.getColumn(headingColumnIndex).key = formatWithPeriod(paradeDate);
 
@@ -106,16 +106,13 @@ export default function FileUpload() {
             return;
           }
           const row = worksheet.getRow(rowIndex); // Rows are 1-based
-          console.log(attendance.name);
-          console.log(attendance.attendanceStatus);
-          console.log(formatWithPeriod(paradeDate));
+          // console.log(attendance.name);
+          // console.log(attendance.attendanceStatus);
+          // console.log(formatWithPeriod(paradeDate));
           row.getCell(formatWithPeriod(paradeDate)).value = attendance.attendanceStatus;
         });
       }
-
-
-      headingColumnIndex++;
-    }
+    });
 
     const excelBlob = await workbook.xlsx.writeBuffer();
     const blob = new Blob([excelBlob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -134,10 +131,7 @@ export default function FileUpload() {
 }
 
 function formatWithPeriod(date: Date) {
-  console.log(date);
   const hour = date.getHours();
-  console.log(hour);
   const period = hour >= 12 ? 'PM' : 'AM';
-  console.log(period);
   return `${format(date, 'dd MMM')} (${period})`;
 }
