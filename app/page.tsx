@@ -5,7 +5,7 @@ import React, { useState, ChangeEvent } from 'react';
 import * as cheerio from 'cheerio';
 import { saveAs } from 'file-saver';
 import { Parade } from '@/utils/Parade';
-import { format, parse } from 'date-fns';
+import { format, parse, getWeekOfMonth, getDay } from 'date-fns';
 import { Workbook } from "exceljs";
 
 export default function FileUpload() {
@@ -39,9 +39,6 @@ export default function FileUpload() {
 
     setIsLoading(true);
 
-    const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet('Parade Data');
-    worksheet.getColumn(1).key = "name";
 
     console.log('Selected file:', selectedFile.name);
     const fileContents = await selectedFile.text();
@@ -72,10 +69,20 @@ export default function FileUpload() {
         return { paradeDate, cleanedParadeText };
       })
 
+
+    let headingColumnIndex = 2;
+    const workbook = new Workbook();
     parades.forEach((parade, index) => {
       if (!parade) return;
-      const headingColumnIndex = index + 2;
       const formattedDateStr = formatWithPeriod(parade.paradeDate);
+
+      const weekOfMonth = formatWithWeekofMonth(parade.paradeDate);
+      let worksheet = workbook.getWorksheet(weekOfMonth);
+      if (!worksheet) {
+        worksheet = workbook.addWorksheet(weekOfMonth);
+        headingColumnIndex = 2;
+      }
+      worksheet.getColumn(1).key = "name";
 
       worksheet.getCell(1, headingColumnIndex).value = formattedDateStr;
       worksheet.getColumn(headingColumnIndex).key = formattedDateStr;
@@ -106,6 +113,7 @@ export default function FileUpload() {
         const row = worksheet.getRow(rowIndex);
         row.getCell(formattedDateStr).value = attendance.attendanceStatus;
       });
+      headingColumnIndex++;
     });
 
     const excelBlob = await workbook.xlsx.writeBuffer();
@@ -128,4 +136,12 @@ function formatWithPeriod(date: Date) {
   const hour = date.getHours();
   const period = hour >= 12 ? 'PM' : 'AM';
   return `${format(date, 'dd MMM')} (${period})`;
+}
+
+function formatWithWeekofMonth(date: Date): string {
+  const formattedDate = format(date, 'MMMM yyyy');
+  const weekNumber = getWeekOfMonth(date);
+  const formattedCustomDate = `${formattedDate} (Week ${weekNumber})`;
+
+  return formattedCustomDate;
 }
