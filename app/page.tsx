@@ -3,10 +3,10 @@
 import { Button, Container, Input, useToast } from '@chakra-ui/react';
 import React, { useState, ChangeEvent } from 'react';
 import * as cheerio from 'cheerio';
-import { Workbook, Worksheet } from 'exceljs';
 import { saveAs } from 'file-saver';
 import { Parade } from '@/utils/Parade';
 import { format, parse } from 'date-fns';
+import ExcelJS from 'exceljs';
 
 export default function FileUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null | undefined>(null);
@@ -39,7 +39,7 @@ export default function FileUpload() {
 
     setIsLoading(true);
 
-    const workbook = new Workbook();
+    const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Parade Data');
     worksheet.getColumn(1).key = "name";
 
