@@ -52,56 +52,53 @@ export default function FileUpload() {
 
     const reversedHtmlParades = $duty_clerk_messages.get();
     const htmlParades = reversedHtmlParades.reverse();
+    const cleanedData = htmlParades
+      .map(htmlParade => {
+        const element = $(htmlParade);
+        const timeElement = element.find('div.pull_right.date.details[title]').first();
+        const datetimeRawStr = timeElement.attr('title');
+        if (!datetimeRawStr) return null;
 
-    htmlParades.forEach((htmlParade, index) => {
-      const element = $(htmlParade);
-      const timeElement = element.find('div.pull_right.date.details[title]').first();
-      
-      const datetimeRawStr = timeElement.attr('title');
-      if (!datetimeRawStr) {
-        return;
-      }
+        const paradeDate = parse(datetimeRawStr, 'dd.MM.yyyy HH:mm:ss \'UTC\'XXX', new Date());
 
-      const paradeDate = parse(datetimeRawStr, 'dd.MM.yyyy HH:mm:ss \'UTC\'XXX', new Date());
+        const rawParadeText = element.find('div.text').html();
+        if (!rawParadeText) return null;
 
-      const rawParadeText = element.find('div.text').html();
-      if (!rawParadeText) {
-        return;
-      }
+        const cleanedParadeText = rawParadeText
+          .replace(/<br>/g, '\n')
+          .replace(/<[^>]*>/g, '')
+          .replace(/&nbsp;/g, ' ');
 
-      const cleanedParadeText = rawParadeText
-        .replace(/<br>/g, '\n') // Replace <br> with \n
-        .replace(/<[^>]*>/g, '') // Remove all HTML tags
-        .replace(/&nbsp;/g, ' '); // Replace &nbsp; with a space
+        return { paradeDate, cleanedParadeText };
+      })
 
-      const parade = new Parade(cleanedParadeText);
-
+    cleanedData.forEach((data, index) => {
+      if (!data) return;
       const headingColumnIndex = index + 2;
-      worksheet.getCell(1, headingColumnIndex).value = formatWithPeriod(paradeDate);
-      worksheet.getColumn(headingColumnIndex).key = formatWithPeriod(paradeDate);
+      const formattedDateStr = formatWithPeriod(data.paradeDate);
+      worksheet.getCell(1, headingColumnIndex).value = formattedDateStr;
+      worksheet.getColumn(headingColumnIndex).key = formattedDateStr;
 
       const rawTrackedNames = worksheet.getColumn(1).values;
       const trackedNames = rawTrackedNames.filter(n => n);
 
+      const attendances = new Parade(data.cleanedParadeText).getAttendances();
       if (trackedNames.length < 1) {
-        const attendances = parade.getAttendances();
         attendances.forEach((attendance, index) => {
           const nameIndex = index + 2;
           let row: any = {};
           row["name"] = attendance.name;
-          row[formatWithPeriod(paradeDate)] = attendance.attendanceStatus;
+          row[formattedDateStr] = attendance.attendanceStatus;
           worksheet.insertRow(nameIndex, row);
         });
       } else {
-        console.log(trackedNames);
-        const attendances = parade.getAttendances();
         attendances.forEach(attendance => {
           const rowIndex = rawTrackedNames.indexOf(attendance.name);
           if (rowIndex < 2) {
             const lastRowIndex = rawTrackedNames.length;
             let row: any = {};
             row["name"] = attendance.name;
-            row[formatWithPeriod(paradeDate)] = attendance.attendanceStatus;
+            row[formattedDateStr] = attendance.attendanceStatus;
             worksheet.insertRow(lastRowIndex, row);
             return;
           }
@@ -109,7 +106,7 @@ export default function FileUpload() {
           // console.log(attendance.name);
           // console.log(attendance.attendanceStatus);
           // console.log(formatWithPeriod(paradeDate));
-          row.getCell(formatWithPeriod(paradeDate)).value = attendance.attendanceStatus;
+          row.getCell(formattedDateStr).value = attendance.attendanceStatus;
         });
       }
     });
