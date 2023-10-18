@@ -20,19 +20,21 @@ export default function FileUpload() {
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      return toast({
+      toast({
         description: 'Please upload a file',
         status: 'error',
         isClosable: true,
       });
+      return;
     }
     if (!selectedFile.type.startsWith('text/html')) {
-      return toast({
+      toast({
         title: 'Only HTML files',
         description: 'Export chat history from telegram!',
         status: 'error',
         isClosable: true,
       });
+      return;
     }
 
     setIsLoading(true);
