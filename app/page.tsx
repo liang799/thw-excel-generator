@@ -52,7 +52,7 @@ export default function FileUpload() {
 
     const reversedHtmlParades = $duty_clerk_messages.get();
     const htmlParades = reversedHtmlParades.reverse();
-    const cleanedData = htmlParades
+    const parades = htmlParades
       .map(htmlParade => {
         const element = $(htmlParade);
         const timeElement = element.find('div.pull_right.date.details[title]').first();
@@ -72,43 +72,40 @@ export default function FileUpload() {
         return { paradeDate, cleanedParadeText };
       })
 
-    cleanedData.forEach((data, index) => {
-      if (!data) return;
+    parades.forEach((parade, index) => {
+      if (!parade) return;
       const headingColumnIndex = index + 2;
-      const formattedDateStr = formatWithPeriod(data.paradeDate);
+      const formattedDateStr = formatWithPeriod(parade.paradeDate);
+
       worksheet.getCell(1, headingColumnIndex).value = formattedDateStr;
       worksheet.getColumn(headingColumnIndex).key = formattedDateStr;
 
       const rawTrackedNames = worksheet.getColumn(1).values;
       const trackedNames = rawTrackedNames.filter(n => n);
 
-      const attendances = new Parade(data.cleanedParadeText).getAttendances();
-      if (trackedNames.length < 1) {
-        attendances.forEach((attendance, index) => {
+      const attendances = new Parade(parade.cleanedParadeText).getAttendances();
+      attendances.forEach((attendance, index) => {
+        if (trackedNames.length < 1) {
           const nameIndex = index + 2;
           let row: any = {};
           row["name"] = attendance.name;
           row[formattedDateStr] = attendance.attendanceStatus;
           worksheet.insertRow(nameIndex, row);
-        });
-      } else {
-        attendances.forEach(attendance => {
-          const rowIndex = rawTrackedNames.indexOf(attendance.name);
-          if (rowIndex < 2) {
-            const lastRowIndex = rawTrackedNames.length;
-            let row: any = {};
-            row["name"] = attendance.name;
-            row[formattedDateStr] = attendance.attendanceStatus;
-            worksheet.insertRow(lastRowIndex, row);
-            return;
-          }
-          const row = worksheet.getRow(rowIndex); // Rows are 1-based
-          // console.log(attendance.name);
-          // console.log(attendance.attendanceStatus);
-          // console.log(formatWithPeriod(paradeDate));
-          row.getCell(formattedDateStr).value = attendance.attendanceStatus;
-        });
-      }
+          return;
+        }
+
+        const rowIndex = rawTrackedNames.indexOf(attendance.name);
+        if (rowIndex < 2) {
+          const lastRowIndex = rawTrackedNames.length;
+          let row: any = {};
+          row["name"] = attendance.name;
+          row[formattedDateStr] = attendance.attendanceStatus;
+          worksheet.insertRow(lastRowIndex, row);
+          return;
+        }
+        const row = worksheet.getRow(rowIndex);
+        row.getCell(formattedDateStr).value = attendance.attendanceStatus;
+      });
     });
 
     const excelBlob = await workbook.xlsx.writeBuffer();

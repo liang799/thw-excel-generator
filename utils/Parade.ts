@@ -1,3 +1,5 @@
+import { captializeRank, convertCapsWithSpacingToCamelCaseWithSpacing } from "./text";
+
 export type Attendance = {
     name: string;
     attendanceStatus: string;
@@ -33,8 +35,10 @@ export class Parade {
                     continue;
                 }
 
-                const name = parts[0].trim();
-                const attendanceStatus = parts[1].trim();
+                const name = captializeRank(
+                    convertCapsWithSpacingToCamelCaseWithSpacing(parts[0].trim())
+                );
+                const attendanceStatus = parts[1].trim().toUpperCase();
                 users.push({ name, attendanceStatus });
             }
 
