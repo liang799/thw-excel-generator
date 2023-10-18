@@ -94,7 +94,14 @@ export default function FileUpload() {
         const attendances = parade.getAttendances();
         attendances.forEach(attendance => {
           const rowIndex = rawTrackedNames.indexOf(attendance.name);
-          if (rowIndex < 2) return; // TODO add name to trackedNames
+          if (rowIndex < 2) {
+            const lastRowIndex = rawTrackedNames.length;
+            let row: any = {};
+            row["name"] = attendance.name;
+            row[formatWithPeriod(paradeDate)] = attendance.attendanceStatus;
+            worksheet.insertRow(lastRowIndex, row);
+            return;
+          }
           const row = worksheet.getRow(rowIndex); // Rows are 1-based
           console.log(attendance.name);
           console.log(attendance.attendanceStatus);
