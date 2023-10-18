@@ -6,6 +6,7 @@ import * as cheerio from 'cheerio';
 import { saveAs } from 'file-saver';
 import { Parade } from '@/utils/Parade';
 import { format, parse } from 'date-fns';
+import 'core-js/features/number/is-nan';
 import { Workbook } from "exceljs";
 
 export default function FileUpload() {
