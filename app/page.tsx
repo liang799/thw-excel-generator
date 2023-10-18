@@ -39,6 +39,7 @@ export default function FileUpload() {
 
     const workbook = new Workbook();
     const worksheet = workbook.addWorksheet('Parade Data');
+    worksheet.getColumn(1).key = "name";
 
     console.log('Selected file:', selectedFile.name);
     const fileContents = await selectedFile.text();
@@ -74,16 +75,41 @@ export default function FileUpload() {
       const parade = new Parade(cleanedParadeText);
 
       worksheet.getCell(1, headingColumnIndex).value = formatWithPeriod(paradeDate);
+      worksheet.getColumn(headingColumnIndex).key = formatWithPeriod(paradeDate);
 
-      const attendances = parade.getAttendances();
-      console.log(attendances);
+      const rawTrackedNames = worksheet.getColumn(1).values;
+      const trackedNames = rawTrackedNames.filter(n => n);
+
+      if (trackedNames.length < 1) {
+        const attendances = parade.getAttendances();
+        attendances.forEach((attendance, index) => {
+          const nameIndex = index + 2;
+          let row: any = {};
+          row["name"] = attendance.name;
+          row[formatWithPeriod(paradeDate)] = attendance.attendanceStatus;
+          worksheet.insertRow(nameIndex, row);
+        });
+      } else {
+        console.log(trackedNames);
+        const attendances = parade.getAttendances();
+        attendances.forEach(attendance => {
+          const rowIndex = rawTrackedNames.indexOf(attendance.name);
+          if (rowIndex < 2) return; // TODO add name to trackedNames
+          const row = worksheet.getRow(rowIndex); // Rows are 1-based
+          console.log(attendance.name);
+          console.log(attendance.attendanceStatus);
+          console.log(formatWithPeriod(paradeDate));
+          row.getCell(formatWithPeriod(paradeDate)).value = attendance.attendanceStatus;
+        });
+      }
+
 
       headingColumnIndex++;
     }
 
     const excelBlob = await workbook.xlsx.writeBuffer();
     const blob = new Blob([excelBlob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    // saveAs(blob, 'example.xlsx');
+    saveAs(blob, 'example.xlsx');
     setIsLoading(false);
   };
 
