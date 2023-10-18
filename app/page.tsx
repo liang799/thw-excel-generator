@@ -6,7 +6,7 @@ import * as cheerio from 'cheerio';
 import { saveAs } from 'file-saver';
 import { Parade } from '@/utils/Parade';
 import { format, parse } from 'date-fns';
-import * as ExcelJS from 'exceljs';
+import { Workbook } from "exceljs";
 
 export default function FileUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null | undefined>(null);
@@ -39,7 +39,7 @@ export default function FileUpload() {
 
     setIsLoading(true);
 
-    const workbook = new ExcelJS.Workbook();
+    const workbook = new Workbook();
     const worksheet = workbook.addWorksheet('Parade Data');
     worksheet.getColumn(1).key = "name";
 
