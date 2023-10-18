@@ -6,7 +6,7 @@ import * as cheerio from 'cheerio';
 import { saveAs } from 'file-saver';
 import { Parade } from '@/utils/Parade';
 import { format, parse } from 'date-fns';
-import ExcelJS from 'exceljs';
+import * as ExcelJS from 'exceljs';
 
 export default function FileUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null | undefined>(null);
