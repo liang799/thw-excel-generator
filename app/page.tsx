@@ -114,6 +114,9 @@ export default function FileUpload() {
         row.getCell(formattedDateStr).value = attendance.attendanceStatus;
       });
       headingColumnIndex++;
+    });
+
+    workbook.eachSheet((worksheet) => {
       autoWidth(worksheet);
     });
 
@@ -154,15 +157,15 @@ function formatWithWeekofMonth(date: Date): string {
  * @param minimalWidth
  */
 function autoWidth(worksheet: Worksheet, minimalWidth = 10) {
-    worksheet.columns.forEach((column) => {
-        let maxColumnLength = 0;
-        column.eachCell?.({ includeEmpty: true }, (cell) => {
-            maxColumnLength = Math.max(
-                maxColumnLength,
-                minimalWidth,
-                cell.value ? cell.value.toString().length : 0
-            );
-        });
-        column.width = maxColumnLength + 2;
+  worksheet.columns.forEach((column) => {
+    let maxColumnLength = 0;
+    column.eachCell?.({ includeEmpty: true }, (cell) => {
+      maxColumnLength = Math.max(
+        maxColumnLength,
+        minimalWidth,
+        cell.value ? cell.value.toString().length : 0
+      );
     });
+    column.width = maxColumnLength + 2;
+  });
 }
