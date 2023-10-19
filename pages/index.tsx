@@ -1,10 +1,11 @@
-import { Button, Container, Input, useToast } from '@chakra-ui/react';
+import { Button, Container, Heading, Input, Stack, Text, useToast } from '@chakra-ui/react';
 import React, { useState, ChangeEvent } from 'react';
 import * as cheerio from 'cheerio';
 import { saveAs } from 'file-saver';
 import { Parade } from '@/utils/Parade';
 import { parse } from 'date-fns';
 import { Workbook, Worksheet } from "exceljs";
+import Navbar from '@/components/navbar';
 
 export default function FileUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null | undefined>(null);
@@ -125,12 +126,19 @@ export default function FileUpload() {
   };
 
   return (
-    <Container>
-      <Input type="file" onChange={handleFileChange} />
-      <Button onClick={handleUpload} isLoading={isLoading}>
-        Convert to Excel
-      </Button>
-    </Container>
+    <>
+      <Navbar />
+      <Container paddingY={4}>
+        <Stack spacing={4}>
+          <Heading>HTML to Excel</Heading>
+          <Text>Telegram exported chat to Parade Attendance Excel</Text>
+          <Input type="file" onChange={handleFileChange} />
+          <Button onClick={handleUpload} isLoading={isLoading} colorScheme='teal'>
+            Convert to Excel
+          </Button>
+        </Stack>
+      </Container>
+    </>
   );
 }
 
