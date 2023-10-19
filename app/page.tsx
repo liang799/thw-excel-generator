@@ -6,7 +6,7 @@ import * as cheerio from 'cheerio';
 import { saveAs } from 'file-saver';
 import { Parade } from '@/utils/Parade';
 import { format, parse, getWeekOfMonth, getDay } from 'date-fns';
-import { Workbook } from "exceljs";
+import { Workbook, Worksheet } from "exceljs";
 
 export default function FileUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null | undefined>(null);
@@ -114,6 +114,7 @@ export default function FileUpload() {
         row.getCell(formattedDateStr).value = attendance.attendanceStatus;
       });
       headingColumnIndex++;
+      autoWidth(worksheet);
     });
 
     const excelBlob = await workbook.xlsx.writeBuffer();
@@ -144,4 +145,24 @@ function formatWithWeekofMonth(date: Date): string {
   const formattedCustomDate = `${formattedDate} (Week ${weekNumber})`;
 
   return formattedCustomDate;
+}
+
+/**
+ * Autofit columns by width
+ *
+ * @param worksheet {ExcelJS.Worksheet}
+ * @param minimalWidth
+ */
+function autoWidth(worksheet: Worksheet, minimalWidth = 10) {
+    worksheet.columns.forEach((column) => {
+        let maxColumnLength = 0;
+        column.eachCell?.({ includeEmpty: true }, (cell) => {
+            maxColumnLength = Math.max(
+                maxColumnLength,
+                minimalWidth,
+                cell.value ? cell.value.toString().length : 0
+            );
+        });
+        column.width = maxColumnLength + 2;
+    });
 }
