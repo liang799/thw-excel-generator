@@ -6,8 +6,10 @@ import { Parade } from '@/utils/Parade';
 import { parse } from 'date-fns';
 import { Workbook, Worksheet } from "exceljs";
 import Navbar from '@/components/navbar';
+import { FileUpload } from '@/components/file-input';
 
-export default function FileUpload() {
+
+export default function IndexPage() {
   const [selectedFile, setSelectedFile] = useState<File | null | undefined>(null);
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
@@ -132,7 +134,7 @@ export default function FileUpload() {
         <Stack spacing={4}>
           <Heading>HTML to Excel</Heading>
           <Text>Telegram exported chat to Parade Attendance Excel</Text>
-          <Input type="file" onChange={handleFileChange} />
+          <FileUpload onChange={handleFileChange} />
           <Button onClick={handleUpload} isLoading={isLoading} colorScheme='teal'>
             Convert to Excel
           </Button>
