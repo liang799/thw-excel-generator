@@ -1,11 +1,9 @@
-'use client'
-
 import { Button, Container, Input, useToast } from '@chakra-ui/react';
 import React, { useState, ChangeEvent } from 'react';
 import * as cheerio from 'cheerio';
 import { saveAs } from 'file-saver';
 import { Parade } from '@/utils/Parade';
-import { format, parse, getWeekOfMonth, getDay } from 'date-fns';
+import { parse } from 'date-fns';
 import { Workbook, Worksheet } from "exceljs";
 
 export default function FileUpload() {
