@@ -66,7 +66,7 @@ export default function FileUpload() {
           .replace(/<[^>]*>/g, '')
           .replace(/&nbsp;/g, ' ');
 
-        return { paradeDate, cleanedParadeText };
+        return new Parade(cleanedParadeText, paradeDate);
       })
 
 
@@ -74,9 +74,9 @@ export default function FileUpload() {
     const workbook = new Workbook();
     parades.forEach((parade, index) => {
       if (!parade) return;
-      const formattedDateStr = formatWithPeriod(parade.paradeDate);
+      const formattedDateStr = parade.getFormattedParadeDate();
+      const weekOfMonth = parade.getParadeMonthandWeek();
 
-      const weekOfMonth = formatWithWeekofMonth(parade.paradeDate);
       let worksheet = workbook.getWorksheet(weekOfMonth);
       if (!worksheet) {
         worksheet = workbook.addWorksheet(weekOfMonth);
@@ -90,7 +90,7 @@ export default function FileUpload() {
       const rawTrackedNames = worksheet.getColumn(1).values;
       const trackedNames = rawTrackedNames.filter(n => n);
 
-      const attendances = new Parade(parade.cleanedParadeText).getAttendances();
+      const attendances = parade.getAttendances();
       attendances.forEach((attendance, index) => {
         if (trackedNames.length < 1) {
           const nameIndex = index + 2;
@@ -136,19 +136,6 @@ export default function FileUpload() {
   );
 }
 
-function formatWithPeriod(date: Date) {
-  const hour = date.getHours();
-  const period = hour >= 12 ? 'PM' : 'AM';
-  return `${format(date, 'dd MMM')} (${period})`;
-}
-
-function formatWithWeekofMonth(date: Date): string {
-  const formattedDate = format(date, 'MMMM yyyy');
-  const weekNumber = getWeekOfMonth(date);
-  const formattedCustomDate = `${formattedDate} (Week ${weekNumber})`;
-
-  return formattedCustomDate;
-}
 
 /**
  * Autofit columns by width

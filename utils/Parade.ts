@@ -1,4 +1,5 @@
 import { captializeRank, convertCapsWithSpacingToCamelCaseWithSpacing } from "./text";
+import { format, parse, getWeekOfMonth, getDay } from 'date-fns';
 
 export type Attendance = {
     name: string;
@@ -7,9 +8,11 @@ export type Attendance = {
 
 export class Parade {
     private readonly rawText: string;
+    private readonly paradeDate: Date;
 
-    constructor(rawText: string) {
+    constructor(rawText: string, date: Date) {
         this.rawText = rawText;
+        this.paradeDate = date;
     }
 
     getAttendances(): Attendance[] {
@@ -54,4 +57,30 @@ export class Parade {
 
         return usersArray;
     }
+
+    getParadeDate(): Date {
+        return this.paradeDate;
+    }
+
+    getFormattedParadeDate(): string {
+      return formatWithPeriod(this.paradeDate);
+    }
+
+    getParadeMonthandWeek(): string {
+      return formatWithWeekofMonth(this.paradeDate);
+    }
+}
+
+function formatWithPeriod(date: Date) {
+  const hour = date.getHours();
+  const period = hour >= 12 ? 'PM' : 'AM';
+  return `${format(date, 'dd MMM')} (${period})`;
+}
+
+function formatWithWeekofMonth(date: Date): string {
+  const formattedDate = format(date, 'MMMM yyyy');
+  const weekNumber = getWeekOfMonth(date);
+  const formattedCustomDate = `${formattedDate} (Week ${weekNumber})`;
+
+  return formattedCustomDate;
 }
