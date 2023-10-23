@@ -1,4 +1,5 @@
-import { Button, Container, Heading, Input, Stack, Text, useToast } from '@chakra-ui/react';
+import { Button, Container, Heading, Link, Stack, Text, useToast } from '@chakra-ui/react';
+import { ExternalLinkIcon } from '@chakra-ui/icons'
 import React, { useState, ChangeEvent } from 'react';
 import * as cheerio from 'cheerio';
 import { saveAs } from 'file-saver';
@@ -138,6 +139,9 @@ export default function IndexPage() {
           <Button onClick={handleUpload} isLoading={isLoading} colorScheme='teal'>
             Convert to Excel
           </Button>
+          <Link href='https://github.com/liang799/thw-excel-generator/blob/main/example-data/messages.html' isExternal>
+            View Example Data <ExternalLinkIcon mx='2px' />
+          </Link>
         </Stack>
       </Container>
     </>
