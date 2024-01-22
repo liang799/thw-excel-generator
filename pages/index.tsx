@@ -72,7 +72,7 @@ export default function IndexPage() {
       })
 
 
-    let headingColumnIndex = 2;
+    let headingColumnIndex = 3;
     const workbook = new Workbook();
     parades.forEach((parade, index) => {
       if (!parade) return;
@@ -82,14 +82,15 @@ export default function IndexPage() {
       let worksheet = workbook.getWorksheet(weekOfMonth);
       if (!worksheet) {
         worksheet = workbook.addWorksheet(weekOfMonth);
-        headingColumnIndex = 2;
+        headingColumnIndex = 3; // Date heading column index
       }
-      worksheet.getColumn(1).key = "name";
+      worksheet.getColumn(1).key = "branch";
+      worksheet.getColumn(2).key = "name";
 
       worksheet.getCell(1, headingColumnIndex).value = formattedDateStr;
       worksheet.getColumn(headingColumnIndex).key = formattedDateStr;
 
-      const rawTrackedNames = worksheet.getColumn(1).values;
+      const rawTrackedNames = worksheet.getColumn(2).values;
       const trackedNames = rawTrackedNames.filter(n => n);
 
       const attendances = parade.getAttendances();
@@ -97,6 +98,7 @@ export default function IndexPage() {
         if (trackedNames.length < 1) {
           const nameIndex = index + 2;
           let row: any = {};
+          row["branch"] = attendance.branch;
           row["name"] = attendance.name;
           row[formattedDateStr] = attendance.attendanceStatus;
           worksheet.insertRow(nameIndex, row);
@@ -107,6 +109,7 @@ export default function IndexPage() {
         if (rowIndex < 2) {
           const lastRowIndex = rawTrackedNames.length;
           let row: any = {};
+          row["branch"] = attendance.branch;
           row["name"] = attendance.name;
           row[formattedDateStr] = attendance.attendanceStatus;
           worksheet.insertRow(lastRowIndex, row);

@@ -4,6 +4,7 @@ import { format, parse, getWeekOfMonth, getDay } from 'date-fns';
 export type Attendance = {
     name: string;
     attendanceStatus: string;
+    branch: string;
 }
 
 export class Parade {
@@ -16,7 +17,9 @@ export class Parade {
     }
 
     getAttendances(): Attendance[] {
-        function parseSection(section: string): Attendance[] {
+        function parse(section: string): Attendance[] {
+            const branchRegex = /.+:.*[0-9]+\/[0-9]+/;
+            let branch = '';
             const lines = section.split('\n');
             const users: Attendance[] = [];
 
@@ -27,12 +30,20 @@ export class Parade {
                     continue; // Skip empty lines
                 }
 
+                if (line.match(branchRegex)) {
+                    const parts = line.split(':');
+                    console.log(parts[0]);
+                    branch = parts[0];
+                    continue;
+                }
+
                 const parts = line.split('-');
 
                 if (parts.length < 2) {
                     continue;
                 }
 
+                // Is MC section
                 const startsWithNumber = /^\d/.test(parts[1].trim());
                 if (startsWithNumber) {
                     continue;
@@ -42,20 +53,13 @@ export class Parade {
                     convertCapsWithSpacingToCamelCaseWithSpacing(parts[0].trim())
                 );
                 const attendanceStatus = parts[1].trim().toUpperCase();
-                users.push({ name, attendanceStatus });
+                users.push({ name, attendanceStatus, branch });
             }
 
             return users;
         }
 
-
-        const sections = this.rawText.split('\n\n');
-        const usersArray = sections.reduce((acc: any[], section: string) => {
-            const users = parseSection(section);
-            return acc.concat(users);
-        }, []);
-
-        return usersArray;
+        return parse(this.rawText);
     }
 
     getParadeDate(): Date {
@@ -63,24 +67,24 @@ export class Parade {
     }
 
     getFormattedParadeDate(): string {
-      return formatWithPeriod(this.paradeDate);
+        return formatWithPeriod(this.paradeDate);
     }
 
     getParadeMonthandWeek(): string {
-      return formatWithWeekofMonth(this.paradeDate);
+        return formatWithWeekofMonth(this.paradeDate);
     }
 }
 
 function formatWithPeriod(date: Date) {
-  const hour = date.getHours();
-  const period = hour >= 12 ? 'PM' : 'AM';
-  return `${format(date, 'dd MMM')} (${period})`;
+    const hour = date.getHours();
+    const period = hour >= 12 ? 'PM' : 'AM';
+    return `${format(date, 'dd MMM')} (${period})`;
 }
 
 function formatWithWeekofMonth(date: Date): string {
-  const formattedDate = format(date, 'MMMM yyyy');
-  const weekNumber = getWeekOfMonth(date);
-  const formattedCustomDate = `${formattedDate} (Week ${weekNumber})`;
+    const formattedDate = format(date, 'MMMM yyyy');
+    const weekNumber = getWeekOfMonth(date);
+    const formattedCustomDate = `${formattedDate} (Week ${weekNumber})`;
 
-  return formattedCustomDate;
+    return formattedCustomDate;
 }
