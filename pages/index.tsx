@@ -42,6 +42,7 @@ export default function IndexPage() {
     setIsLoading(true);
 
 
+    /* Start parsing telegram exported messages */
     console.log('Selected file:', selectedFile.name);
     const fileContents = await selectedFile.text();
     const $ = cheerio.load(fileContents);
@@ -72,6 +73,7 @@ export default function IndexPage() {
       })
 
 
+    /* Start Conversion into Excel File */
     let headingColumnIndex = 3;
     const workbook = new Workbook();
     parades.forEach((parade, index) => {
@@ -125,6 +127,7 @@ export default function IndexPage() {
       autoWidth(worksheet);
     });
 
+    /* Save the excel file */
     const excelBlob = await workbook.xlsx.writeBuffer();
     const blob = new Blob([excelBlob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     saveAs(blob, 'example.xlsx');
